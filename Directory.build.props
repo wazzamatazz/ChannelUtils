@@ -1,0 +1,26 @@
+﻿<Project>
+  <PropertyGroup>
+    <Authors>Graham Watts</Authors>
+    <Description>Utility classes for System.Threading.Channels</Description>
+    <CopyrightStartYear>2019</CopyrightStartYear>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl></RepositoryUrl>
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
+  </PropertyGroup>
+
+  <!-- Set the copyright notice based on the current year at build time. -->
+  <Choose>
+    <When Condition=" '$([System.DateTime]::Now.Year)' > '$(CopyrightStartYear)' ">
+      <PropertyGroup>
+        <Copyright>Copyright © $(Authors) $(CopyrightStartYear)-$([System.DateTime]::Now.Year)</Copyright>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <Copyright>Copyright © $(Authors) $(CopyrightStartYear)</Copyright>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+</Project>
