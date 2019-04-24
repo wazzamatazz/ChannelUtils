@@ -59,7 +59,7 @@ namespace ChannelUtils {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="source"/> is <see langword="null"/>.
         /// </exception>
-        public MulticastChannel(Channel<T> source) : this(source as ChannelReader<T>) { }
+        public MulticastChannel(Channel<T> source) : this(source?.Reader) { }
 
 
         /// <summary>
@@ -84,6 +84,12 @@ namespace ChannelUtils {
                         foreach (var writer in _writers) {
                             writer.TryWrite(item);
                         }
+                    }
+                }
+
+                lock (_writers) {
+                    foreach (var writer in _writers) {
+                        writer.TryComplete();
                     }
                 }
             }
@@ -121,6 +127,10 @@ namespace ChannelUtils {
                 }
 
                 _writers.Add(writer);
+                // If the master channel has already completed, immediately mark the writer a completed.
+                if (_reader.Completion.IsCompleted) {
+                    writer.TryComplete();
+                }
                 return true;
             }
         }
@@ -140,7 +150,7 @@ namespace ChannelUtils {
         ///   <paramref name="channel"/> is <see langword="null"/>.
         /// </exception>
         public bool AddDestination(Channel<T> channel) {
-            return AddDestination(channel as ChannelWriter<T>);
+            return AddDestination(channel?.Writer);
         }
 
 
@@ -186,7 +196,7 @@ namespace ChannelUtils {
         ///   <paramref name="channel"/> is <see langword="null"/>.
         /// </exception>
         public bool RemoveDestination(Channel<T> channel) {
-            return RemoveDestination(channel as ChannelWriter<T>);
+            return RemoveDestination(channel?.Writer);
         }
 
 
