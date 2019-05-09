@@ -3,7 +3,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ChannelUtils.Tests {
+namespace Jaahas.ChannelUtils.Tests {
 
     [TestClass]
     public class MulticastChannelTests {

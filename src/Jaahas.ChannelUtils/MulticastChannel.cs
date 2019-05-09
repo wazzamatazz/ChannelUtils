@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace ChannelUtils {
+namespace Jaahas.ChannelUtils {
 
     /// <summary>
     /// Reads from a <see cref="Channel{T}"/> and rebroadcasts the read items to multiple subscribers.
