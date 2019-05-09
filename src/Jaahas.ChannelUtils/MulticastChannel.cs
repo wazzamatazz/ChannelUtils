@@ -34,6 +34,17 @@ namespace Jaahas.ChannelUtils {
         /// </summary>
         private readonly List<ChannelWriter<T>> _writers = new List<ChannelWriter<T>>();
 
+        /// <summary>
+        /// Gets the number of subscribers to the <see cref="MulticastChannel{T}"/>.
+        /// </summary>
+        public int Count {
+            get {
+                lock (_writers) {
+                    return _writers.Count;
+                }
+            }
+        }
+
 
         /// <summary>
         /// Creates a new <see cref="MulticastChannel{T}"/> object.
