@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CC0FBB8C-924
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E0C9A6AE-A0F1-4897-959F-70D2415B2487}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChannelUtils", "src\ChannelUtils\ChannelUtils.csproj", "{E4FA7081-6BF3-4A06-8B5E-E56D6B864714}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jaahas.ChannelUtils", "src\Jaahas.ChannelUtils\Jaahas.ChannelUtils.csproj", "{E4FA7081-6BF3-4A06-8B5E-E56D6B864714}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2A2B8310-D32B-410A-B712-46BE77F15393}"
 	ProjectSection(SolutionItems) = preProject
@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChannelUtils.Tests", "tests\ChannelUtils.Tests\ChannelUtils.Tests.csproj", "{274E723C-CCC3-4ABB-BCEF-4D41CA697EB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jaahas.ChannelUtils.Tests", "tests\Jaahas.ChannelUtils.Tests\Jaahas.ChannelUtils.Tests.csproj", "{274E723C-CCC3-4ABB-BCEF-4D41CA697EB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
