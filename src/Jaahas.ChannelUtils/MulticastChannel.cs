@@ -127,7 +127,7 @@ namespace Jaahas.ChannelUtils {
                 }
 
                 _writers.Add(writer);
-                // If the master channel has already completed, immediately mark the writer a completed.
+                // If the master channel has already completed, immediately mark the writer as completed.
                 if (_reader.Completion.IsCompleted) {
                     writer.TryComplete();
                 }
