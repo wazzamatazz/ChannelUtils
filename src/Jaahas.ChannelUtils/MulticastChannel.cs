@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace Jaahas.ChannelUtils {
 
     /// <summary>
-    /// Reads from a <see cref="Channel{T}"/> and rebroadcasts the read items to multiple subscribers.
+    /// Reads from a <see cref="Channel{T}"/> and rebroadcasts the read items to multiple subscribed channels.
     /// </summary>
     /// <typeparam name="T">
     ///   The item type for the channel.
@@ -25,23 +24,21 @@ namespace Jaahas.ChannelUtils {
         private readonly CancellationTokenSource _disposedTokenSource = new CancellationTokenSource();
 
         /// <summary>
-        /// The channel to read from.
+        /// The observable that will multicast values from the input channel.
         /// </summary>
-        private readonly ChannelReader<T> _reader;
+        private readonly IObservable<T> _observable;
 
         /// <summary>
-        /// The channels to rebroadcast to.
+        /// Holds the subscribed channels.
         /// </summary>
-        private readonly List<ChannelWriter<T>> _writers = new List<ChannelWriter<T>>();
+        private readonly ConcurrentDictionary<ChannelWriter<T>, IDisposable> _subscriptions = new ConcurrentDictionary<ChannelWriter<T>, IDisposable>();
 
         /// <summary>
         /// Gets the number of subscribers to the <see cref="MulticastChannel{T}"/>.
         /// </summary>
         public int Count {
             get {
-                lock (_writers) {
-                    return _writers.Count;
-                }
+                return _subscriptions.Count;
             }
         }
 
@@ -56,8 +53,7 @@ namespace Jaahas.ChannelUtils {
         ///   <paramref name="source"/> is <see langword="null"/>.
         /// </exception>
         public MulticastChannel(ChannelReader<T> source) {
-            _reader = source ?? throw new ArgumentNullException(nameof(source));
-            _ = Run(_disposedTokenSource.Token);
+            _observable = source.ToObservable();
         }
 
 
@@ -71,47 +67,6 @@ namespace Jaahas.ChannelUtils {
         ///   <paramref name="source"/> is <see langword="null"/>.
         /// </exception>
         public MulticastChannel(Channel<T> source) : this(source?.Reader) { }
-
-
-        /// <summary>
-        /// Reads and republishes from the <see cref="_reader"/> until it completes, or the canellation 
-        /// token fires.
-        /// </summary>
-        /// <param name="cancellationToken">
-        ///   The cancellation token that will fire when the task should complete.
-        /// </param>
-        /// <returns>
-        ///   A task that will read items from <see cref="_reader"/> and republish them to the 
-        ///   registered <see cref="_writers"/>.
-        /// </returns>
-        private async Task Run(CancellationToken cancellationToken) {
-            try {
-                while (await _reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false)) {
-                    if (!_reader.TryRead(out var item)) {
-                        continue;
-                    }
-
-                    lock (_writers) {
-                        foreach (var writer in _writers) {
-                            writer.TryWrite(item);
-                        }
-                    }
-                }
-
-                lock (_writers) {
-                    foreach (var writer in _writers) {
-                        writer.TryComplete();
-                    }
-                }
-            }
-            catch (Exception e) {
-                lock (_writers) {
-                    foreach (var writer in _writers) {
-                        writer.TryComplete(e);
-                    }
-                }
-            }
-        }
 
 
         /// <summary>
@@ -132,18 +87,13 @@ namespace Jaahas.ChannelUtils {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            lock (_writers) {
-                if (_isDisposed || _disposedTokenSource.IsCancellationRequested) {
-                    return false;
-                }
-
-                _writers.Add(writer);
-                // If the master channel has already completed, immediately mark the writer as completed.
-                if (_reader.Completion.IsCompleted) {
-                    writer.TryComplete();
-                }
-                return true;
+            if (_isDisposed || _disposedTokenSource.IsCancellationRequested) {
+                return false;
             }
+
+            _subscriptions.GetOrAdd(writer, ch => _observable.Subscribe(ch.ToObserver()));
+
+            return true;
         }
 
 
@@ -183,13 +133,17 @@ namespace Jaahas.ChannelUtils {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            lock (_writers) {
-                if (_isDisposed || _disposedTokenSource.IsCancellationRequested) {
-                    return false;
-                }
-
-                return _writers.Remove(writer);
+            if (_isDisposed || _disposedTokenSource.IsCancellationRequested) {
+                return false;
             }
+
+            if (_subscriptions.TryRemove(writer, out var subscription)) {
+                subscription.Dispose();
+                writer.TryComplete();
+                return true;
+            }
+
+            return false;
         }
 
 
@@ -219,15 +173,15 @@ namespace Jaahas.ChannelUtils {
                 return;
             }
 
-            _disposedTokenSource.Cancel();
-            _disposedTokenSource.Dispose();
-            lock (_writers) {
-                foreach (var writer in _writers) {
-                    writer.TryComplete();
-                }
-                _writers.Clear();
-            }
             _isDisposed = true;
+
+            foreach (var item in _subscriptions.ToArray()) {
+                item.Value.Dispose();
+                item.Key.TryComplete();
+            }
+
+            _subscriptions.Clear();
+            
         }
     }
 }
