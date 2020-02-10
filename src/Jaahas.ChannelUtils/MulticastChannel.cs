@@ -19,11 +19,6 @@ namespace Jaahas.ChannelUtils {
         private bool _isDisposed;
 
         /// <summary>
-        /// Fires when the object is disposed.
-        /// </summary>
-        private readonly CancellationTokenSource _disposedTokenSource = new CancellationTokenSource();
-
-        /// <summary>
         /// The observable that will multicast values from the input channel.
         /// </summary>
         private readonly IObservable<T> _observable;
@@ -87,7 +82,7 @@ namespace Jaahas.ChannelUtils {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (_isDisposed || _disposedTokenSource.IsCancellationRequested) {
+            if (_isDisposed) {
                 return false;
             }
 
@@ -133,7 +128,7 @@ namespace Jaahas.ChannelUtils {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (_isDisposed || _disposedTokenSource.IsCancellationRequested) {
+            if (_isDisposed) {
                 return false;
             }
 
